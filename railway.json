@@ -1,0 +1,76 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "npm install --production=false && npm run build",
+    "watchPatterns": [
+      "src/**/*",
+      "services/**/*"
+    ],
+    "nixpacksConfigPath": "nixpacks.toml"
+  },
+  "deploy": {
+    "numReplicas": 3,
+    "sleepApplication": false,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 15,
+    "restartPolicyBackoffLimit": 60,
+    "startCommand": "node cluster.js",
+    "healthcheckPath": "/status",
+    "healthcheckTimeout": 10,
+    "healthcheckInterval": 30,
+    "healthcheckStartPeriod": 60,
+    "healthcheckRetries": 3,
+    "lifecycle": {
+      "preStop": "node ./scripts/graceful-shutdown.js"
+    },
+    "strategy": "rolling",
+    "rolloutOptions": {
+      "maxSurge": 1,
+      "maxUnavailable": 0
+    },
+    "cron": {
+      "metrics-reporter": "0 * * * *",
+      "database-backup": "0 0 * * *"
+    },
+    "resources": {
+      "cpu": 1,
+      "memory": "512Mi"
+    }
+  },
+  "plugins": {
+    "metrics": {
+      "type": "prometheus"
+    },
+    "logging": {
+      "destination": "loki"
+    },
+    "tracing": {
+      "enabled": true,
+      "exporter": "jaeger"
+    }
+  },
+  "environments": [
+    {
+      "name": "production",
+      "deploy": {
+        "numReplicas": 5,
+        "resources": {
+          "cpu": 2,
+          "memory": "1Gi"
+        }
+      }
+    },
+    {
+      "name": "staging",
+      "deploy": {
+        "numReplicas": 2,
+        "resources": {
+          "cpu": 0.5,
+          "memory": "256Mi"
+        }
+      }
+    }
+  ]
+}
+

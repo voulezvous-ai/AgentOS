@@ -1,0 +1,318 @@
+name: AgentOS CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'LICENSE'
+  pull_request:
+    branches: [ main, develop ]
+    types: [ opened, synchronize, reopened ]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'LICENSE'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '18.x'
+  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+  CACHE_KEY_PREFIX: agentos-ci-
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd services/websocket-service && npm ci
+          cd ../vox-service && npm ci
+        
+      - name: Run ESLint
+        run: npm run lint
+        
+      - name: Check code format with Prettier
+        run: npx prettier --check "**/*.{js,jsx,ts,tsx,json}"
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: lint
+    services:
+      mongodb:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd services/websocket-service && npm ci
+          cd ../vox-service && npm ci
+      
+      - name: Set up MongoDB Replica Set for Change Streams
+        run: |
+          echo "Setting up MongoDB Replica Set..."
+          mongosh --eval "rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'localhost:27017'}]})"
+          
+      - name: Run unit tests
+        run: npm test -- --coverage
+        
+      - name: Run integration tests
+        run: npm run test:integration
+        
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    strategy:
+      matrix:
+        service: [websocket-service, vox-service, frontend]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+          
+      - name: Install dependencies
+        run: |
+          if [[ "${{ matrix.service }}" == "frontend" ]]; then
+            npm ci
+          else
+            cd services/${{ matrix.service }} && npm ci
+          fi
+          
+      - name: Build ${{ matrix.service }}
+        run: |
+          if [[ "${{ matrix.service }}" == "frontend" ]]; then
+            npm run build
+          else
+            cd services/${{ matrix.service }} && npm run build
+          fi
+        
+      - name: Cache build artifacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ matrix.service == 'frontend' && 'dist' || 'services/'.concat(matrix.service).concat('/dist') }}
+          key: ${{ env.CACHE_KEY_PREFIX }}${{ matrix.service }}-${{ github.sha }}
+          restore-keys: |
+            ${{ env.CACHE_KEY_PREFIX }}${{ matrix.service }}-
+            
+  deploy-staging:
+    name: Deploy to Railway (Staging)
+    runs-on: ubuntu-latest
+    needs: build
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    environment: staging
+    
+    strategy:
+      matrix:
+        service: [websocket-service, vox-service, frontend]
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Restore build artifacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ matrix.service == 'frontend' && 'dist' || 'services/'.concat(matrix.service).concat('/dist') }}
+          key: ${{ env.CACHE_KEY_PREFIX }}${{ matrix.service }}-${{ github.sha }}
+          
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+        
+      - name: Deploy to Railway (Staging)
+        run: |
+          if [[ "${{ matrix.service }}" == "frontend" ]]; then
+            railway up --service agentos-frontend-staging
+          else
+            cd services/${{ matrix.service }}
+            railway up --service agentos-${{ matrix.service }}-staging
+          fi
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          
+      - name: Verify Deployment
+        run: |
+          if [[ "${{ matrix.service }}" == "websocket-service" ]]; then
+            echo "Verifying WebSocket service..."
+            curl -s https://agentos-websocket-service-staging.up.railway.app/status | grep "ok"
+          elif [[ "${{ matrix.service }}" == "vox-service" ]]; then
+            echo "Verifying VOX service..."
+            curl -s https://agentos-vox-service-staging.up.railway.app/status | grep "ok"
+          else
+            echo "Verifying frontend..."
+            curl -s -I https://agentos-frontend-staging.up.railway.app | grep "200 OK"
+          fi
+            
+  deploy-production:
+    name: Deploy to Railway (Production)
+    runs-on: ubuntu-latest
+    needs: build
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment: production
+    
+    strategy:
+      matrix:
+        service: [websocket-service, vox-service, frontend]
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Restore build artifacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ matrix.service == 'frontend' && 'dist' || 'services/'.concat(matrix.service).concat('/dist') }}
+          key: ${{ env.CACHE_KEY_PREFIX }}${{ matrix.service }}-${{ github.sha }}
+          
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+        
+      - name: Deploy to Railway (Production)
+        run: |
+          if [[ "${{ matrix.service }}" == "frontend" ]]; then
+            railway up --service agentos-frontend
+          else
+            cd services/${{ matrix.service }}
+            railway up --service agentos-${{ matrix.service }}
+          fi
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          
+      - name: Verify Deployment
+        run: |
+          if [[ "${{ matrix.service }}" == "websocket-service" ]]; then
+            echo "Verifying WebSocket service..."
+            curl -s https://agentos-websocket-service.up.railway.app/status | grep "ok"
+          elif [[ "${{ matrix.service }}" == "vox-service" ]]; then
+            echo "Verifying VOX service..."
+            curl -s https://agentos-vox-service.up.railway.app/status | grep "ok"
+          else
+            echo "Verifying frontend..."
+            curl -s -I https://agentos-frontend.up.railway.app | grep "200 OK"
+          fi
+            
+  notify:
+    name: Notify Team
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    
+    steps:
+      - name: Check deployment status
+        id: status
+        run: |
+          if [[ "${{ needs.deploy-staging.result }}" == "success" || "${{ needs.deploy-production.result }}" == "success" ]]; then
+            echo "success=true" >> $GITHUB_OUTPUT
+            echo "environment=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'Production' || 'Staging' }}" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+            echo "environment=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'Production' || 'Staging' }}" >> $GITHUB_OUTPUT
+          fi
+        
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "${{ steps.status.outputs.success == 'true' && '✅ Deployment Successful' || '❌ Deployment Failed' }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ steps.status.outputs.success == 'true' && '✅ *Deployment Successful*' || '❌ *Deployment Failed*' }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Environment:*\n${{ steps.status.outputs.environment }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Triggered by:*\n${{ github.actor }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Workflow Run>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

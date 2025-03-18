@@ -1,0 +1,86 @@
+name: Auto Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Permite acionamento manual
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Create GitHub Deployment
+        id: create_deployment
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const result = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: "production",
+              auto_merge: false,
+              required_contexts: [],
+              description: "Deployment via GitHub Actions"
+            });
+            console.log(`Deployment created: ${result.data.id}`);
+            return result.data.id;
+      
+      - name: Update Deployment Status (In Progress)
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const deploymentId = ${{ steps.create_deployment.outputs.result }};
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deploymentId,
+              state: "in_progress",
+              description: "Deployment iniciado"
+            });
+      
+      - name: Deploy to Railway
+        id: railway_deploy
+        run: |
+          # Instalar Railway CLI
+          npm i -g @railway/cli
+          
+          # Login e deploy usando token armazenado nos secrets
+          railway login --token ${{ secrets.RAILWAY_TOKEN }}
+          railway up
+        continue-on-error: true
+      
+      - name: Update Deployment Status (Final)
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const deploymentId = ${{ steps.create_deployment.outputs.result }};
+            const success = ${{ steps.railway_deploy.outcome == 'success' }};
+            
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deploymentId,
+              state: success ? "success" : "failure",
+              environment_url: success ? "https://agentos-production.up.railway.app" : null,
+              description: success ? "Deployment concluído com sucesso" : "Falha no deployment"
+            });

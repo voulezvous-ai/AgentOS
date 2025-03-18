@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+*/node_modules/
+**/node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+
+# Build outputs
+dist/
+build/
+out/
+
+# Local environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Chrome/Puppeteer downloads
+**/puppeteer-core/.local-chromium/
+
+# Large binary files
+*.zip
+*.tar.gz
+*.tgz
+*.tar.bz2
+*.dmg
+*.iso
+*.rar
+*.7z
+*.framework

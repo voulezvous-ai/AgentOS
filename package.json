@@ -1,0 +1,21 @@
+{
+  "name": "agentos-complete-frontend",
+  "version": "2.0.0",
+  "private": true,
+  "dependencies": {
+    "@octokit/auth-app": "^7.1.5",
+    "axios": "^1.8.3",
+    "dotenv": "^16.4.7",
+    "octokit": "^4.1.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.11.2"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build"
+  },
+  "devDependencies": {
+    "react-scripts": "5.0.1"
+  }
+}

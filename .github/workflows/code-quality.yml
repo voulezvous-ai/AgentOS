@@ -1,0 +1,350 @@
+name: Code Quality & Testing
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - develop
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'LICENSE'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'LICENSE'
+
+env:
+  NODE_VERSION: '18.x'
+  CACHE_KEY_PREFIX: agentos-ci-
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd services/websocket-service && npm ci
+          cd ../vox-service && npm ci
+        
+      - name: Run ESLint with annotations
+        uses: wearerequired/lint-action@v2
+        with:
+          eslint: true
+          eslint_extensions: js,jsx,ts,tsx
+          continue_on_error: false
+        
+      - name: Check code style with Prettier
+        run: npx prettier --check "**/*.{js,jsx,ts,tsx,json,css,md}"
+        
+      - name: Run SonarCloud scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        
+      - name: Security audit with npm
+        run: npm audit --audit-level=high
+        continue-on-error: true
+      
+      - name: Run SAST with CodeQL
+        uses: github/codeql-action/analyze@v2
+        with:
+          languages: javascript
+          queries: security-extended, security-and-quality
+        
+  unit-test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    services:
+      mongodb:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval \"db.adminCommand('ping')\""
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd services/websocket-service && npm ci
+          cd ../vox-service && npm ci
+          
+      - name: Set up MongoDB Replica Set for Change Streams
+        run: |
+          echo "Setting up MongoDB Replica Set..."
+          mongosh --eval "rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'localhost:27017'}]})"
+          mongosh --eval "db.adminCommand({setParameter: 1, enableTestCommands: 1})"
+          
+      - name: Run unit tests
+        run: npm test -- --coverage
+        env:
+          MONGODB_URI: mongodb://localhost:27017/agentos_test?replicaSet=rs0
+          
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          
+      - name: Generate JUnit report
+        run: npm run test:report
+        if: always()
+        
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: test-results/*.xml
+          
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: unit-test
+    
+    services:
+      mongodb:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval \"db.adminCommand('ping')\""
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd services/websocket-service && npm ci
+          cd ../vox-service && npm ci
+          
+      - name: Set up MongoDB Replica Set for Change Streams
+        run: |
+          echo "Setting up MongoDB Replica Set..."
+          mongosh --eval "rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'localhost:27017'}]})"
+          mongosh --eval "db.adminCommand({setParameter: 1, enableTestCommands: 1})"
+          
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          MONGODB_URI: mongodb://localhost:27017/agentos_test?replicaSet=rs0
+          
+      - name: Generate integration test report
+        run: npm run test:integration:report
+        if: always()
+        
+      - name: Publish integration test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: test-results/integration/*.xml
+          
+  e2e-test:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: [unit-test, integration-test]
+    
+    services:
+      mongodb:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd services/websocket-service && npm ci
+          cd ../vox-service && npm ci
+          
+      - name: Set up MongoDB Replica Set for Change Streams
+        run: |
+          echo "Setting up MongoDB Replica Set..."
+          mongosh --eval "rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'localhost:27017'}]})"
+          
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+        
+      - name: Build frontend
+        run: npm run build
+          
+      - name: Start services
+        run: |
+          cd services/websocket-service && npm run start:test &
+          cd ../vox-service && npm run start:test &
+          npm run preview &
+          echo "Waiting for services to start..."
+          sleep 10
+        env:
+          MONGODB_URI: mongodb://localhost:27017/agentos_test?replicaSet=rs0
+          
+      - name: Run E2E tests
+        run: npm run test:e2e
+        
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+          
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: e2e-test
+    if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'develop'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install k6
+        run: |
+          curl -L https://github.com/grafana/k6/releases/download/v0.44.1/k6-v0.44.1-linux-amd64.tar.gz | tar xz
+          sudo mv k6-v0.44.1-linux-amd64/k6 /usr/local/bin
+        
+      - name: Run WebSocket Performance Tests
+        run: |
+          cd performance
+          k6 run websocket-performance.js --summary-export=websocket-results.json
+        
+      - name: Parse and Comment Results
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('performance/websocket-results.json'));
+            
+            const formatNum = (num) => Math.round(num * 100) / 100;
+            
+            const comment = `## 📊 Performance Test Results
+            
+            ### WebSocket Service Performance
+            
+            | Metric | Value |
+            | ------ | ----- |
+            | VUs | ${results.metrics.vus.values.max} |
+            | Iterations | ${results.metrics.iterations.values.count} |
+            | Request Duration p90 | ${formatNum(results.metrics.http_req_duration.values.p(90))}ms |
+            | Request Duration p95 | ${formatNum(results.metrics.http_req_duration.values.p(95))}ms |
+            | Requests/sec | ${formatNum(results.metrics.http_reqs.values.rate)} |
+            | Failed Requests | ${results.metrics.http_req_failed.values.count} |
+            
+            [View detailed report](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID})
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            })
+            
+  report-status:
+    name: Report Status
+    runs-on: ubuntu-latest
+    needs: [code-quality, unit-test, integration-test, e2e-test, performance-test]
+    if: always()
+    
+    steps:
+      - name: Check build matrix status
+        id: status
+        run: |
+          if [[ "${{ needs.code-quality.result }}" == "success" && "${{ needs.unit-test.result }}" == "success" && "${{ needs.integration-test.result }}" == "success" ]]; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+    
+      - name: Update PR status
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const success = ${{ steps.status.outputs.success }};
+            
+            if (success) {
+              github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                event: 'APPROVE',
+                body: '✅ All quality checks passed! This PR meets our quality standards.'
+              });
+            } else {
+              github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                event: 'REQUEST_CHANGES',
+                body: '❌ Some quality checks failed. Please fix the issues reported in the checks tab.'
+              });
+            }

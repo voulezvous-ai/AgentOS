@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # Serviço MongoDB configurado como Replica Set
+  mongodb:
+    image: mongo:5.0
+    container_name: agentos-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - mongodb_data:/data/db
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Serviço para inicializar o Replica Set
+  mongo-init:
+    image: mongo:5.0
+    container_name: agentos-mongo-init
+    restart: "no"
+    depends_on:
+      - mongodb
+    volumes:
+      - ./scripts/init-replica.sh:/scripts/init-replica.sh:ro
+    entrypoint: ["sh", "/scripts/init-replica.sh"]
+
+  # Serviço WebSocket (desativado por padrão para desenvolvimento local)
+  websocket-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agentos-websocket
+    restart: always
+    ports:
+      - "3030:3030"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/agentos?replicaSet=rs0&authSource=admin
+      - WS_PORT=3030
+      - CLUSTER_MODE=false
+    depends_on:
+      - mongodb
+      - mongo-init
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    # Descomente para habilitar o serviço
+    profiles:
+      - disabled
+
+volumes:
+  mongodb_data:
+    driver: local
