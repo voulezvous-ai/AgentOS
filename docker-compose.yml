@@ -13,42 +13,42 @@ services:
       - mongodb
       - vox-service
   people-service:
-    build: ./services/people-service
+    build: ./backend/services/people-service
     container_name: people-service
     ports:
       - "3001:3001"
     depends_on:
       - mongodb
   order-service:
-    build: ./services/order-service
+    build: ./backend/services/order-service
     container_name: order-service
     ports:
       - "3004:3004"
     depends_on:
       - mongodb
   media-service:
-    build: ./services/media-service
+    build: ./backend/services/media-service
     container_name: media-service
     ports:
       - "3003:3003"
     depends_on:
       - mongodb
   ai-agent:
-    build: ./services/ai-agent
+    build: ./backend/services/ai-agent
     container_name: ai-agent
     ports:
       - "3005:3005"
     depends_on:
       - mongodb
   access-control:
-    build: ./services/access-control
+    build: ./backend/services/access-control
     container_name: access-control
     ports:
       - "3006:3006"
     depends_on:
       - mongodb
   vox-service:
-    build: ./services/vox-service
+    build: ./backend/services/vox-service
     container_name: vox-service
     ports:
       - "3030:3030"

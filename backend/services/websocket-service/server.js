@@ -36,6 +36,17 @@ app.use(express.json({ limit: '1mb' })); // Limite para payload JSON
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Endpoint de health check para Railway
+app.get('/status', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    service: 'websocket-service',
+    version: process.env.VERSION || '1.0.0'
+  });
+});
+
 // Servidor WebSocket
 const wss = new WebSocket.Server({ server });
 

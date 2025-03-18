@@ -9,25 +9,25 @@ cmds = ["echo 'AgentOS build process starting...'"]
 [phases.install]
 cmds = [
   "npm ci --production=false", 
-  "cd services/websocket-service && npm ci --production=false",
+  "cd backend/services/websocket-service && npm ci --production=false",
   "cd ../vox-service && npm ci --production=false"
 ]
 cacheDirectories = [
   "node_modules",
-  "services/websocket-service/node_modules",
-  "services/vox-service/node_modules"
+  "backend/services/websocket-service/node_modules",
+  "backend/services/vox-service/node_modules"
 ]
 
 [phases.build]
 cmds = [
   "npm run build", 
-  "cd services/websocket-service && npm run build",
+  "cd backend/services/websocket-service && npm run build",
   "cd ../vox-service && npm run build"
 ]
 cacheDirectories = [
   "dist",
-  "services/websocket-service/dist",
-  "services/vox-service/dist"
+  "backend/services/websocket-service/dist",
+  "backend/services/vox-service/dist"
 ]
 
 [phases.test]
@@ -37,7 +37,7 @@ cmds = [
 ]
 
 [start]
-cmd = "node services/websocket-service/cluster.js"
+cmd = "node backend/services/websocket-service/cluster.js"
 runImage = "node:18-slim"
 
 [variables]
