@@ -32,3 +32,11 @@ out/
 *.rar
 *.7z
 *.framework
+
+# Large bundles
+*.bundle
+backend/services/vox-service/vox-integration-bundle.bundle
+
+# Large bundles
+*.bundle
+backend/services/vox-service/vox-integration-bundle.bundle
