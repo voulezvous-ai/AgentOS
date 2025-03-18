@@ -1,21 +1,28 @@
 {
-  "name": "agentos-complete-frontend",
+  "name": "agentos",
   "version": "2.0.0",
   "private": true,
+  "description": "Plataforma inteligente de gestão com IA conversacional",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "start": "npm run start-backend & npm run start-frontend",
+    "start-backend": "cd backend && npm run start",
+    "start-frontend": "cd frontend && npm run start",
+    "build": "npm run build-backend && npm run build-frontend",
+    "build-backend": "cd backend && npm run build",
+    "build-frontend": "cd frontend && npm run build",
+    "test": "npm run test-backend && npm run test-frontend",
+    "test-backend": "cd backend && npm run test",
+    "test-frontend": "cd frontend && npm run test"
+  },
   "dependencies": {
     "@octokit/auth-app": "^7.1.5",
     "axios": "^1.8.3",
     "dotenv": "^16.4.7",
-    "octokit": "^4.1.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.11.2"
+    "octokit": "^4.1.2"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build"
-  },
-  "devDependencies": {
-    "react-scripts": "5.0.1"
-  }
+  "devDependencies": {}
 }
