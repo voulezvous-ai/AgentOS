@@ -1,0 +1,23 @@
+# ...existing code...
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install dependencies
+        run: |
+          if [ ! -f package-lock.json ] && [ ! -f npm-shrinkwrap.json ] && [ ! -f yarn.lock ]; then
+            npm install
+          fi
+
+      # ...existing code...
+      - name: Run your build/test/deploy steps
+        run: npm run build # ou o comando necessário para o seu projeto
+# ...existing code...
