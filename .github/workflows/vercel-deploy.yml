@@ -1,4 +1,4 @@
-name: Deploy para Vercel
+name: Deploy para Vercel 🚀
 
 on:
   push:
@@ -10,32 +10,52 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout do Código
+      - name: 🚀 Checkout do Código
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
+      - name: 🛠️ Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'
 
-      - name: Instalar Dependências
-        run: npm ci
+      - name: 📂 Entrar na pasta correta
+        run: |
+          cd frontend
+          npm install
 
-      - name: Rodar Build
-        run: npm run build
+      - name: 🔍 Verificar Dependências
+        run: |
+          cd frontend
+          npm audit --production || echo "⚠️ Aviso: Dependências com avisos, mas continuando..."
+
+      - name: 🏗️ Rodar Build
+        run: |
+          cd frontend
+          npm run build
 
   deploy:
     needs: build
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout do Código
+      - name: 🚀 Checkout do Código
         uses: actions/checkout@v4
 
-      - name: Instalar Vercel CLI
+      - name: 📂 Entrar na pasta correta
+        run: |
+          cd frontend
+          npm install
+
+      - name: 📦 Instalar Vercel CLI
         run: npm install -g vercel
 
-      - name: Deploy na Vercel
+      - name: 🔑 Configurar Vercel Auth
+        run: vercel login --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: 🚀 Fazer Deploy na Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel --prod --token=$VERCEL_TOKEN
+        run: |
+          cd frontend
+          vercel --prod --token=$VERCEL_TOKEN
