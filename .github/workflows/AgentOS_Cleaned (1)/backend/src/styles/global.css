@@ -1,0 +1,177 @@
+/* Basic reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+  line-height: 1.6;
+}
+
+a {
+  text-decoration: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+}
+.header-admin {
+  background-color: #20232a;
+  color: #fff;
+}
+.header-customer {
+  background-color: #283e51;
+  color: #fff;
+}
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+.nav {
+  display: flex;
+  gap: 1rem;
+}
+.nav-link {
+  color: #ccc;
+  transition: color 0.3s;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: #fff;
+}
+
+.sidebar {
+  width: 220px;
+  background-color: #282c34;
+  color: #ddd;
+  padding: 20px;
+  min-height: calc(100vh - 60px);
+}
+.sidebar-link {
+  display: block;
+  padding: 8px 0;
+  color: #bbb;
+  transition: color 0.3s;
+}
+.sidebar-link:hover,
+.sidebar-link.active {
+  color: #fff;
+}
+
+.admin-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.admin-main-content {
+  display: flex;
+  flex: 1;
+}
+.admin-page-content {
+  flex: 1;
+  padding: 30px;
+  background-color: #fff;
+}
+
+.customer-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.customer-content {
+  flex: 1;
+  padding: 20px;
+}
+
+.btn {
+  display: inline-block;
+  background-color: #1a1a1a;
+  color: #fff;
+  padding: 8px 16px;
+  margin-right: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
+  text-decoration: none;
+}
+.btn:hover {
+  background-color: #333;
+}
+
+.landing {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+.data-table th,
+.data-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+.data-table th {
+  background-color: #f0f0f0;
+}
+
+.spinner {
+  margin: 20px;
+  font-weight: bold;
+}
+
+/* Chat widget styles */
+.chat-widget {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}
+.chat-toggle {
+  padding: 8px 12px;
+  background-color: #1a1a1a;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+.chat-content {
+  margin-top: 10px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 10px;
+  width: 300px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+.chat-log {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+.chat-message {
+  margin-bottom: 8px;
+}
+.chat-input-group {
+  display: flex;
+}
+.chat-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+.chat-send-btn {
+  padding: 8px 12px;
+  background-color: #1a1a1a;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
