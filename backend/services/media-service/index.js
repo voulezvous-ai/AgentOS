@@ -1,8 +1,7 @@
- 
-// services/media-service/index.js
+// services/index.js
 import express from 'express';
 import dotenv from 'dotenv';
-import mediaRoutes from './routes.js';
+import mediaRoutes from './media-service/routes.js';
 
 dotenv.config();
 const app = express();

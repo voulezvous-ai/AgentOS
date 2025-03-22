@@ -1,0 +1,1 @@
+// Moved from backend/tests/peopleService.test.js

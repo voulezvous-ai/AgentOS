@@ -1,6 +1,24 @@
-# AgentOS - Sistema Inteligente de Gerenciamento
+# AgentOS-3
 
-AgentOS é uma plataforma avançada que integra sistemas de gerenciamento empresarial com recursos de IA conversacional para automação de processos e tomada de decisões inteligentes.
+## Estrutura Atualizada
+
+### Documentação
+- Toda a documentação foi consolidada em `docs/`.
+
+### Scripts
+- Scripts organizados em `scripts/` com subpastas para funcionalidades específicas.
+
+### Frontend
+- Arquivos do frontend organizados em `frontend/` com subpastas para configuração, componentes e recursos estáticos.
+
+### Backend
+- Arquivos do backend organizados em `backend/` com subpastas para configuração, serviços e testes.
+
+### Configuração de Deploy
+- Arquivos de configuração de deploy movidos para `config/deployment/`.
+
+### Arquivos Obsoletos
+- Arquivos redundantes ou obsoletos foram movidos para `archive/` ou removidos.
 
 ## Estrutura do Projeto
 
@@ -9,6 +27,7 @@ A estrutura do projeto segue uma arquitetura limpa e modular:
 ```markdown
 /AgentOS
 ├── docs/                 # Toda a documentação consolidada
+│   ├── README.md         # Arquivo README movido para a pasta docs
 ├── backend/              # Toda a lógica de servidor
 │   ├── src/              # Código-fonte principal
 │   │   ├── domain/       # Entidades e regras de negócio
@@ -20,7 +39,10 @@ A estrutura do projeto segue uma arquitetura limpa e modular:
 │   │   ├── vox-service/  # Serviço principal de IA
 │   │   ├── audit-service/ # Logs e auditoria
 │   │   ├── websocket-service/ # Comunicação em tempo real
-│   │   └── whatsapp-service/ # Integração com WhatsApp
+│   │   ├── whatsapp-service/ # Integração com WhatsApp
+│   │   ├── media-service/ # Processamento de mídia
+│   │   ├── order-service/ # Gerenciamento de pedidos
+│   │   ├── access-control/ # Controle de acesso e autenticação
 │   └── tests/            # Testes categorizados
 │       ├── unit/         # Testes unitários
 │       ├── integration/  # Testes de integração

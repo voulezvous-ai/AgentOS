@@ -1,5 +1,4 @@
-
-// services/order-service/controllers.js
+// services/controllers.js
 let orders = [];
 let inventory = [];
 let salesData = []; // Simulação de vendas

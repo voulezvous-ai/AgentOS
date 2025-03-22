@@ -5,8 +5,8 @@
 
 const express = require('express');
 const router = express.Router();
-const WhatsAppManager = require('./WhatsAppManager');
-const { formatPhoneNumber } = require('./common/utils');
+const WhatsAppManager = require('../whatsapp-service/WhatsAppManager');
+const { formatPhoneNumber } = require('../whatsapp-service/common/utils');
 
 // Referência ao gerenciador de WhatsApp
 let whatsappManager = null;

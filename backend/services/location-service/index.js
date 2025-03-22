@@ -1,0 +1,1 @@
+// Move this file to /services/location-service/index.js

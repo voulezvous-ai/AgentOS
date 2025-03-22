@@ -6,6 +6,7 @@
  * implementations (Baileys for groups and Web.js for direct messaging).
  */
 
+// DEPRECATED: Utilize o módulo /services/whatsapp-service para integração unificada.
 const WhatsAppManager = require('./WhatsAppManager');
 const WhatsAppIntegration = require('./integration');
 const BaileysWhatsAppClient = require('./baileys/client');

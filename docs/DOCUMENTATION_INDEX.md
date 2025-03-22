@@ -2,22 +2,23 @@
 
 Este diretório contém toda a documentação do projeto AgentOS.
 
-## Índice de Documentação
+## Documentation Index
 
-### Guias de Implantação e DevOps
-- [Guia de Implantação](./deployment_guides_old/DEPLOYMENT_GUIDE.md)
-- [Guia de Implantação no Railway](./deployment_guides_old/RAILWAY_DEPLOY.md)
-- [Instruções para Tokens](./TOKEN_INSTRUCTIONS.md)
-- [Configuração de App GitHub](./GITHUB_APP_SETUP.md)
-- [Guia de CI/CD](./CI_CD_GUIDE.md)
+## General Documentation
+- [README.md](../README.md)
+- [Project Overview](Project_Overview.txt)
+- [Deployment Guide](Deployment_Guide.txt)
+- [CI/CD Guide](CI_CD_GUIDE.md)
+- [Token Instructions](TOKEN_INSTRUCTIONS.md)
 
-### Documentação Técnica
-- [Visão Geral do Projeto](./Project_Overview.txt)
-- [Roadmap de Integração VOX](./VOX-INTEGRATION-ROADMAP.md)
-- [Changelog do WebSocket](./CHANGELOG-WEBSOCKET.md)
+### WebSocket Documentation
+- [WebSocket Changelog](CHANGELOG-WEBSOCKET.md)
 
-### Manuais e Instruções
-- [README Principal](./README.md)
+### Integration Roadmaps
+- [Vox Integration Roadmap](VOX-INTEGRATION-ROADMAP.md)
+
+### Archived Documentation
+- [Old Deployment Guides](deployment_guides_old/)
 
 ## Estrutura do Projeto
 

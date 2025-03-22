@@ -1,3 +1,6 @@
+// DEPRECATED: Esta classe foi consolidada no módulo /services/whatsapp-service.
+// Favor migrar para o novo serviço unificado.
+
 /**
  * WhatsApp Manager for AgentOS
  * 

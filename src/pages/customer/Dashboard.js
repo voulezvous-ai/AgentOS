@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { apiGet } from '../../services/api';
+import { apiGet } from '../../../services/api';
 import Spinner from '../../components/Spinner';
 
 const Dashboard = () => {

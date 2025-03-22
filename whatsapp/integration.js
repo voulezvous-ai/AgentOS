@@ -7,6 +7,9 @@
  * - Maintaining consistent memory context across all interactions
  */
 
+// DEPRECATED: A lógica de integração foi consolidada em /services/whatsapp-service.
+// Favor atualizar as referências para o novo módulo.
+
 const WhatsAppManager = require('./WhatsAppManager');
 const Memory = require('../../core/Memory');
 const path = require('path');

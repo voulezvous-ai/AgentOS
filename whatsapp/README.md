@@ -1,3 +1,4 @@
+<!-- DEPRECATED: Esta integração foi migrada para /services/whatsapp-service. -->
 # WhatsApp Integration para AgentOS
 
 Esta integração permite que o VoxAgent se comunique através do WhatsApp, usando uma abordagem de cliente duplo para lidar com diferentes tipos de interações.

@@ -1,4 +1,5 @@
 // jest.config.js
+// Ensure this file is properly configured for the backend tests.
 module.exports = {
   testEnvironment: 'node',
   verbose: true,

@@ -3,6 +3,8 @@
  * Pode ser usado para diferentes tipos de chat (Vox, estafetas, etc)
  */
 
+import getReconnectDelay from './reconnectHelper';
+
 class WebSocketService {
   /**
    * Cria uma nova instância do serviço WebSocket
@@ -184,10 +186,7 @@ class WebSocketService {
     
     this.reconnectAttempts++;
     
-    // Backoff exponencial com jitter
-    const jitter = Math.random() * 0.5 + 0.5; // 0.5 a 1.0
-    const baseDelay = 1000 * Math.pow(2, this.reconnectAttempts);
-    const delay = Math.min(baseDelay * jitter, 30000); // Máximo 30 segundos
+    const delay = getReconnectDelay(this.reconnectAttempts);
     
     console.log(`Tentando reconectar em ${Math.round(delay)}ms (tentativa ${this.reconnectAttempts})`);
     

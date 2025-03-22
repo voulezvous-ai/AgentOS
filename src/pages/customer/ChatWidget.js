@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { courierChatService } from '../../frontend/utils/webSocketService';
+import { courierChatService } from '../../../services/webSocketService';
 
 const ChatWidget = () => {
   const [open, setOpen] = useState(false);

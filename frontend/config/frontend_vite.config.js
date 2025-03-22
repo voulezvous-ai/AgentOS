@@ -1,0 +1,1 @@
+// Configuração consolidada do frontend

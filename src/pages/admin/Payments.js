@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiGet, apiPut } from '../../services/api';
+import { apiGet, apiPut } from '../../../services/api';
 import Spinner from '../../components/Spinner';
 
 const Payments = () => {

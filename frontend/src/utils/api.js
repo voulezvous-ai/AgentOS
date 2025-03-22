@@ -1,4 +1,4 @@
-// src/frontend/utils/api.js
+// services/api.js
 /**
  * Utility for making API requests with consistent error handling
  */

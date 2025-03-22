@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Badge, Group, Text, Card, Loader, ActionIcon, useMantineTheme } from '@mantine/core';
 import { IconRefresh, IconQrcode, IconTrash, IconCheck } from '@tabler/icons-react';
 import { getActiveClients, generateQRCode, removeWhatsAppClient } from '../../api/whatsappService';
+import ActionIcons from './ActionIcons';
 
 const ClientList = ({ onSelectClient }) => {
   const theme = useMantineTheme();
@@ -122,28 +123,11 @@ const ClientList = ({ onSelectClient }) => {
                   </Badge>
                 </td>
                 <td>
-                  <Group spacing={8}>
-                    <ActionIcon 
-                      color="blue" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleGenerateQR(client.id);
-                      }}
-                      title="Gerar QR Code"
-                    >
-                      <IconQrcode size={16} />
-                    </ActionIcon>
-                    <ActionIcon 
-                      color="red" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveClient(client.id);
-                      }}
-                      title="Remover cliente"
-                    >
-                      <IconTrash size={16} />
-                    </ActionIcon>
-                  </Group>
+                  <ActionIcons 
+                    clientId={client.id} 
+                    onGenerateQR={handleGenerateQR} 
+                    onRemoveClient={handleRemoveClient}
+                  />
                 </td>
               </tr>
             ))}
