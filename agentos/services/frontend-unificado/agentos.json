@@ -1,0 +1,13 @@
+{
+    "name": "frontend-unificado",
+    "version": "1.0.0",
+    "description": "Frontend unificado da plataforma, servindo SPA com Vite/React",
+    "entrypoint": "start.sh",
+    "type": "frontend",
+    "author": "VoulezVous",
+    "dependencies": [],
+    "exposed_port": 80,
+    "env": {
+        "PORT": "80"
+    }
+}
