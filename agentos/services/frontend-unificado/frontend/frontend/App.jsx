@@ -8,7 +8,8 @@ import {
   IconCalendar, 
   IconSettings,
   IconDeviceNfc,
-  IconRobot
+  IconRobot,
+  IconTerminal
 } from '@tabler/icons-react';
 
 // Pages
@@ -16,6 +17,7 @@ import Dashboard from './pages/Dashboard';
 import WhatsAppDashboard from './pages/WhatsAppDashboard';
 import RFIDManagement from './pages/RFIDManagement';
 import VoxPage from './pages/VoxPage';
+import PromptosPage from './pages/PromptosPage';
 import VoxChatWidget from './components/VoxChatWidget';
 
 // Estilos para os itens de navegação
@@ -65,7 +67,8 @@ function App() {
   
   // Navigation links
   const navLinks = [
-    { label: 'Dashboard', icon: <IconDashboard size={16} />, path: '/', color: 'blue' },
+    { label: 'PromptOS', icon: <IconTerminal size={16} />, path: '/', color: 'blue' },
+    { label: 'Dashboard', icon: <IconDashboard size={16} />, path: '/dashboard', color: 'cyan' },
     { label: 'WhatsApp', icon: <IconBrandWhatsapp size={16} />, path: '/whatsapp', color: 'green' },
     { label: 'Users', icon: <IconUsers size={16} />, path: '/users', color: 'violet' },
     { label: 'RFID Management', icon: <IconDeviceNfc size={16} />, path: '/rfid', color: 'orange' },
@@ -122,7 +125,8 @@ function App() {
       })}
     >
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<PromptosPage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/whatsapp" element={<WhatsAppDashboard />} />
         <Route path="/users" element={<div>Users Page (Under development)</div>} />
         <Route path="/rfid" element={<RFIDManagement />} />
