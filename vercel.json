@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "buildCommand": "cd agentos/services/frontend-unificado/frontend/frontend && npm install && npm run build:vercel",
+  "outputDirectory": "agentos/services/frontend-unificado/frontend/frontend/dist",
+  "installCommand": "cd agentos/services/frontend-unificado/frontend/frontend && npm install",
+  "framework": "vite",
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/favicon.ico"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/.*",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "VITE_API_URL": "https://agentos-api.railway.app",
+    "NODE_VERSION": "18.x"
+  }
+}
