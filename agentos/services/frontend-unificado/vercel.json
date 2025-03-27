@@ -5,8 +5,8 @@
       "src": "frontend/frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "frontend/frontend/dist",
-        "buildCommand": "cd frontend/frontend && npm install && npm run build"
+        "distDir": "dist",
+        "buildCommand": "cd frontend/frontend && npm install && npm run build:vercel"
       }
     }
   ],
@@ -20,11 +20,15 @@
       "dest": "/favicon.ico"
     },
     {
-      "src": "/(.*)",
+      "handle": "filesystem"
+    },
+    {
+      "src": "/.*",
       "dest": "/index.html"
     }
   ],
   "env": {
-    "VITE_API_URL": "https://agentos-api.railway.app"
+    "VITE_API_URL": "https://agentos-api.railway.app",
+    "NODE_VERSION": "18.x"
   }
 }
