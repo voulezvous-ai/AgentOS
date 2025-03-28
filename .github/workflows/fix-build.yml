@@ -17,25 +17,28 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: Install dependencies
+      - name: Install dependencies in frontend-unificado
         run: |
+          cd services/frontend-unificado/frontend
           npm install
 
       - name: Check if main.scss exists and create if missing
         run: |
-          if [ ! -f "services/frontend-unificado/frontend/frontend/styles/main.scss" ]; then
+          if [ ! -f "services/frontend-unificado/frontend/styles/main.scss" ]; then
             echo "Arquivo main.scss não encontrado. Criando um arquivo básico..."
-            echo "body { background-color: #f0f0f0; }" > services/frontend-unificado/frontend/frontend/styles/main.scss
+            echo "body { background-color: #f0f0f0; }" > services/frontend-unificado/frontend/styles/main.scss
           else
             echo "Arquivo main.scss encontrado!"
           fi
 
       - name: Install Sass if needed
         run: |
+          cd services/frontend-unificado/frontend
           npm install sass
 
       - name: Run build
         run: |
+          cd services/frontend-unificado/frontend
           npm run build
 
       - name: Deploy to Vercel
