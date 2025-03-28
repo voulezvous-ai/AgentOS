@@ -1,0 +1,12 @@
+
+fastapi
+uvicorn[standard]
+python-dotenv
+pymongo
+gspread
+oauth2client
+openai
+gtts
+apscheduler
+httpx
+pydantic

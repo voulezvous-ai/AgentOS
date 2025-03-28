@@ -1,0 +1,46 @@
+name: Fix Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  fix-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies in frontend-unificado
+        run: |
+          cd services/frontend-unificado/frontend
+          npm install
+
+      - name: Check if main.scss exists and create if missing
+        run: |
+          if [ ! -f "services/frontend-unificado/frontend/styles/main.scss" ]; then
+            echo "Arquivo main.scss não encontrado. Criando um arquivo básico..."
+            echo "body { background-color: #f0f0f0; }" > services/frontend-unificado/frontend/styles/main.scss
+          else
+            echo "Arquivo main.scss encontrado!"
+          fi
+
+      - name: Install Sass if needed
+        run: |
+          cd services/frontend-unificado/frontend
+          npm install sass
+
+      - name: Run build
+        run: |
+          cd services/frontend-unificado/frontend
+          npm run build
+
+      - name: Deploy to Vercel
+        run: |
+          vercel --prod

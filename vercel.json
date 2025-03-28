@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd agentos/frontend && npm install && npm run build",
+  "outputDirectory": "agentos/frontend/dist",
+  "framework": "vite"
+}
