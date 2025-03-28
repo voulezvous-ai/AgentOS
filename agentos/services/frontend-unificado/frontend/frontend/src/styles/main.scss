@@ -1,0 +1,46 @@
+// Main styles for AgentOS frontend
+
+// Variables
+$primary-color: #1240FF;
+$secondary-color: #3A61FF;
+$dark-bg: #141517;
+$dark-surface: #25262B;
+$text-light: #C1C2C5;
+
+// Global styles
+body {
+  background-color: $dark-bg;
+  color: $text-light;
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.dark-theme {
+  background-color: $dark-bg;
+  color: $text-light;
+}
+
+// Layout
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+// Utility classes
+.text-primary {
+  color: $primary-color;
+}
+
+.text-secondary {
+  color: $secondary-color;
+}
+
+.bg-dark {
+  background-color: $dark-bg;
+}
+
+.bg-surface {
+  background-color: $dark-surface;
+}

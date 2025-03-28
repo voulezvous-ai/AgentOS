@@ -1,0 +1,22 @@
+name: Promover Fork para Oficial
+
+on:
+  workflow_dispatch: # Permite execução manual
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Instalar Git
+        run: sudo apt-get install git -y
+
+      - name: Executar script de promoção
+        run: python3 promote_fork_to_official.py

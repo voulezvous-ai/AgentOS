@@ -1,0 +1,43 @@
+name: Deploy Frontend to Vercel
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'agentos/services/frontend-unificado/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: agentos/services/frontend-unificado/frontend/frontend/package.json
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Build and Deploy to Vercel
+        working-directory: agentos/services/frontend-unificado
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "Building and deploying to Vercel..."
+          cd frontend/frontend
+          npm install
+          npm run build:vercel
+          vercel deploy --prod --token=$VERCEL_TOKEN --yes
+
+      - name: Verify Deployment
+        run: |
+          echo "Deployment triggered. Verifying..."
+          echo "Visit https://v0-agent-os-ai.vercel.app to see the deployed application."
