@@ -1,0 +1,40 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'  # Certifique-se de que a versão do Node.js é compatível com seu projeto
+          
+      - name: Install dependencies
+        run: |
+          npm install
+
+      - name: Fix Vercel build check for ES Modules
+        run: |
+          sed -i 's/require/fs/import fs/' vercel-build-check.js  # Corrige require por import no build check
+
+      - name: Build Project
+        run: |
+          npm run build:vercel  # Ajuste o comando se necessário
+
+      - name: Deploy to Vercel
+        run: |
+          npm install -g vercel
+          vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
