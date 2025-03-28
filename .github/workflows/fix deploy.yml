@@ -1,0 +1,53 @@
+name: Fix Frontend Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  fix-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: |
+          cd services/frontend-unificado/frontend
+          npm install
+
+      - name: Install missing dependencies
+        run: |
+          cd services/frontend-unificado/frontend
+          npm install tailwindcss sass autoprefixer postcss
+
+      - name: Check if postcss.config.js exists and create if missing
+        run: |
+          FRONTEND_DIR="services/frontend-unificado/frontend"
+          if [ ! -f "$FRONTEND_DIR/postcss.config.js" ]; then
+            echo "Criando postcss.config.js..."
+            echo 'module.exports = {
+              plugins: {
+                tailwindcss: {},
+                autoprefixer: {},
+              },
+            };' > "$FRONTEND_DIR/postcss.config.js"
+          else
+            echo "postcss.config.js já existe!"
+          fi
+
+      - name: Run build
+        run: |
+          cd services/frontend-unificado/frontend
+          npm run build
+
+      - name: Deploy to Vercel
+        run: |
+          cd services/frontend-unificado/frontend
+          vercel --prod
